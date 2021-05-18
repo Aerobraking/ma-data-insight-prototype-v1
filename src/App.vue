@@ -1,17 +1,35 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
+  <Tabs />
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import HelloWorld from './components/HelloWorld.vue';
+import { defineComponent } from "vue";
+import Tabs from "./components/Tabs.vue";
 
 export default defineComponent({
-  name: 'App',
+  name: "App",
+  data() {
+    return {
+      done: [] as any,
+    };
+  },
+  methods: {
+    addToCart: function (event: any, id: any) {
+      // use event here as well as id
+      console.log("In addToCart");
+      console.log(id);
+    },
+  },
   components: {
-    HelloWorld
-  }
+    Tabs,
+  },
+  created() {
+    this.$store.subscribe((mutation: any, state: any) => {
+      if (mutation.payload.undoAction) {
+        mutation.payload.view.history.push(mutation); 
+      }
+    });
+  },
 });
 </script>
 
@@ -21,7 +39,20 @@ export default defineComponent({
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  color: #cccccc;
+}
+
+* {
+  user-select: none;
+}
+
+body {
+  background-color: rgb(43, 43, 43);
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+.vue-pan-zoom-scene {
+  height: 100%;
 }
 </style>

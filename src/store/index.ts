@@ -2,6 +2,7 @@ import { createStore } from 'vuex'
 
 export default createStore({
   state: {
+    selectedNodes:[] as any,
     dragOffsetX: 1,
     dragOffsetY: 1,
     views: [
@@ -175,26 +176,27 @@ export default createStore({
 
         payload.undo = () => {
           for (let [index, element] of selectedElement.entries()) {
-              element.x += offX;
-              element.y += offY;
+            element.x += offX;
+            element.y += offY;
           }
         };
 
 
-        for (let [index, element] of payload.view.nodes.entries()) {
+        var x = 0, l = payload.view.nodes.length;
+        while (x < l) {
+          let element = payload.view.nodes[x];
           if (element.isSelected) {
             selectedElement.push(element);
-          }
-        }
-
-        for (let [index, element] of payload.view.nodes.entries()) {
-          if (element.isSelected) {
             element.x -= state.dragOffsetX;
             element.y -= state.dragOffsetY;
           }
+          x++;
         }
+
+
         state.dragOffsetX = 0;
         state.dragOffsetY = 0;
+        state.selectedNodes=[];
         console.log("undo action added");
 
 

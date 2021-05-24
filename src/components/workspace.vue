@@ -13,6 +13,7 @@
     <!-- Ohne selector hat es nicht funktioniert, weil er dann passendes dom element findet -->
     <panZoom
       @init="panHappen"
+      @pan="onPanStart"
       @click.capture.exact="mouseDown"
       :options="{
         minZoom: 0.08,
@@ -37,6 +38,11 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import Nodes from "./nodes.vue";
+
+var counter = 0;
+
+var timesPerSecond = 30; // how many times to fire the event per second
+var wait = false;
 
 export default defineComponent({
   el: "#wrapper",
@@ -134,6 +140,9 @@ export default defineComponent({
     panHappen: function (p: any, id: String) {
       p.setTransformOrigin(null);
       this.panZoomInstance = p;
+      p.on("panzoompan", function (e: any) {
+        console.log(e);
+      });
     },
     keyDownCtrl: function (e: KeyboardEvent) {
       let cmd = e.code.toLowerCase();
@@ -145,7 +154,7 @@ export default defineComponent({
       }
       if (cmd === "keye") {
         console.log("undo button");
-        
+
         this.$store.dispatch("undoView", {
           viewKey: this.workspace.key,
         });
@@ -164,13 +173,24 @@ export default defineComponent({
 
       // console.log("check: "+xOffT+" - "+ yOffT);
       if (Math.abs(xOffT) >= 1 || Math.abs(yOffT) >= 1) {
-        this.$store.dispatch("moveSelectedOffset", {
+        this.$store.commit("moveSelectedOffset", {
           xOff: xOffT,
           yOff: yOffT,
           viewKey: this.workspace.key,
           undoAction: false,
         });
       }
+
+      // if (!wait) {
+      //   // fire the event
+
+      //   // stop any further events
+      //   wait = true;
+      //   // after a fraction of a second, allow events again
+      //   setTimeout(function () {
+      //     wait = false;
+      //   }, 1000 / timesPerSecond);
+      // }
     },
     dragMouseUp: function (e: MouseEvent) {
       this.mouseDownB = false;
@@ -195,6 +215,10 @@ export default defineComponent({
       this.mouseDownB = true;
       this.dragStartX = e.clientX;
       this.dragStartY = e.clientY;
+    },
+    onPanStart(e: any) {
+     this.$store.state;
+     // hide nodes die nicht visible sind
     },
     beforeWheelHandler(e: any) {
       var shouldIgnore: boolean = !e.altKey;

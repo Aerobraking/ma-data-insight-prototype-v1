@@ -2,8 +2,9 @@
   <div
     @click.prevent="clickStart"
     :style="{
-      top: getY() + 'px',
-      left: getX() + 'px',
+      //     transform: 'translate(' + getX() + 'px, ' + getY() + 'px' + ')',
+      //  transform: '-webkit-translate3d(' + getX() + 'px, ' + getY() + 'px' + ', 0)',
+      transform: 'translate3d(' + getX() + 'px, ' + getY() + 'px' + ', 0)',
     }"
     v-bind:class="['mydiv, selectable', { selected: file.isSelected }]"
   >
@@ -35,10 +36,15 @@ export default defineComponent({
     },
 
     getX() {
-      return this.file.x - (this.file.isSelected ? this.$store.state.dragOffsetX : 0);
+      // console.log("getXX");
+      return (
+        this.file.x - (this.file.isSelected ? this.$store.state.dragOffsetX : 0)
+      );
     },
     getY() {
-      return this.file.y - (this.file.isSelected ? this.$store.state.dragOffsetY : 0);
+      return (
+        this.file.y - (this.file.isSelected ? this.$store.state.dragOffsetY : 0)
+      );
     },
   },
   computed: {},
@@ -49,6 +55,10 @@ export default defineComponent({
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
 .mydiv {
+  will-change: transform;
+  backface-visibility: hidden;
+  perspective: 1000;
+
   position: absolute;
   height: 100px;
   width: 100px;
@@ -59,8 +69,8 @@ export default defineComponent({
 }
 
 .mydiv.selected {
-  // border: 0px solid rgba(197, 41, 41, 0.911);
-  box-shadow: 0 0 4px 4px rgb(223, 73, 73);
+  border: 4px solid rgba(197, 41, 41, 0.911);
+  // box-shadow: 0 0 4px 4px rgb(223, 73, 73);
   transition: none;
 }
 </style>

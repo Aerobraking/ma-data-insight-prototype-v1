@@ -17,7 +17,7 @@
       @click="selectTab(index)"
       :key="view.key"
       v-show="view.isActive"
-      class="mydiv select"
+      
     >
       <workspace :workspace="view" v-if="view.type === 'workspace'">
       </workspace>

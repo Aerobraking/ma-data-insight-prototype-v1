@@ -21,7 +21,7 @@
     >
       <workspace :workspace="view" v-if="view.type === 'workspace'">
       </workspace>
-      <overview :workspace="view" v-else> </overview>
+      <globalview :global="view" v-else> </globalview>
     </div>
   </keep-alive>
 </template>
@@ -30,14 +30,14 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import workspace from "./workspace.vue";
-import overview from "./overview.vue";
+import globalview from "./globalview.vue";
 
 export default defineComponent({
   el: "#wrapper",
   name: "Tabs",
   components: {
     workspace,
-    overview,
+    globalview,
   },
   data(): {} {
     return {
@@ -45,7 +45,7 @@ export default defineComponent({
     };
   },
   computed: {
-    getViewList() {
+    getViewList() { 
       return this.$store.getters.getViewList;
     },
     getSelectedViewIndex() {

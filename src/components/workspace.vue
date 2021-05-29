@@ -38,9 +38,9 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import Nodes from "./nodes.vue";
-
+import * as d3 from "d3";
 var counter = 0;
-
+const test = d3.easeCubicInOut;
 var timesPerSecond = 30; // how many times to fire the event per second
 var wait = false;
 

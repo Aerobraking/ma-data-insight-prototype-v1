@@ -1,4 +1,4 @@
-import { createStore } from 'vuex'
+import { createStore } from 'vuex';
 
 export default createStore({
   state: {
@@ -11,7 +11,7 @@ export default createStore({
         type: "workspace",
         key: 0,
         name: "Workspace default",
-        isActive: true,
+        isActive: false,
         initialZoom: 1,
         initialX: 0,
         initialY: 0,
@@ -65,7 +65,7 @@ export default createStore({
         type: "overview",
         key: 3,
         name: "Overview",
-        isActive: false,
+        isActive: true,
         initialZoom: 0.1,
         initialX: 300,
         initialY: 500,
@@ -88,21 +88,21 @@ export default createStore({
 
   },
   getters: {
-    getView: (state, getters) => (viewKey: any) => {
+    getView: (state:any, getters:any) => (viewKey: any) => {
       var vF = null;
-      state.views.forEach(v => {
+      state.views.forEach((v: { key: any; }) => {
         if (v.key === viewKey) {
           vF = v;
         }
       });
       return vF;
     },
-    getViewList(state) {
+    getViewList(state:any) {
       return state.views;
     }
   },
   mutations: {
-    setIsSelected(state, payload) {
+    setIsSelected(state:any, payload:any) {
       for (let [index, element] of payload.view.nodes.entries()) {
         var e: any = element;
         if (payload.add) {
@@ -118,12 +118,12 @@ export default createStore({
 
       };
     },
-    selectAll(state, payload) {
+    selectAll(state: any, payload: any) {
       for (let [index, element] of payload.view.nodes.entries()) {
         element.isSelected = true;
       }
     },
-    clearSelection(state, payload) {
+    clearSelection(state:any, payload:any) {
       for (let [index, element] of payload.view.nodes.entries()) {
         element.isSelected = false;
       }
@@ -131,9 +131,9 @@ export default createStore({
         console.log("hello world");
       };
     },
-    newName(state, name: String) {
+    newName(state:any, name: String) {
     },
-    setPosition(state, payload) {
+    setPosition(state:any, payload:any) {
       for (let [index, element] of payload.view.nodes.entries()) {
         if (element.name === payload.name) {
           element.x = payload.xPos;
@@ -141,7 +141,7 @@ export default createStore({
         }
       }
     },
-    undoView(state, payload) {
+    undoView(state:any, payload:any) {
       var found = false;
 
       if (payload.view.history.length == 0) {
@@ -166,7 +166,7 @@ export default createStore({
 
 
     },
-    moveSelectedOffset(state, payload) {
+    moveSelectedOffset(state:any, payload:any) {
 
       if (payload.undoAction) {
 
@@ -207,7 +207,7 @@ export default createStore({
 
       }
     },
-    createTab(state, payload) {
+    createTab(state: any, payload: any) {
       var i = state.views.length;
       state.views.push(
         {
@@ -239,7 +239,7 @@ export default createStore({
         entry.isActive = index === i;
       });
     },
-    addNodes(state, payload) {
+    addNodes(state: any, payload: any) {
       for (const node of payload.listNodes) {
         payload.view.nodes.push(node);
       }
@@ -248,30 +248,30 @@ export default createStore({
 
   },
   actions: {
-    setIsSelected(context, payload) {
+    setIsSelected(context: any, payload: any) {
       payload.view = context.getters.getView(payload.viewKey);
       context.commit('setIsSelected', payload);
     },
-    newName(context, name: String) {
+    newName(context:any, name: String) {
       context.commit('newName', name);
     },
-    setPosition(context, payload) {
+    setPosition(context: any, payload: any) {
       payload.view = context.getters.getView(payload.viewKey);
       context.commit('setPosition', payload);
     },
-    selectAll(context, payload) {
+    selectAll(context: any, payload: any) {
       payload.view = context.getters.getView(payload.viewKey);
       context.commit('selectAll', payload);
     },
-    clearSelection(context, payload) {
+    clearSelection(context: any, payload: any) {
       payload.view = context.getters.getView(payload.viewKey);
       context.commit('clearSelection', payload);
     },
-    moveSelectedOffset(context, payload) {
+    moveSelectedOffset(context: any, payload: any) {
       payload.view = context.getters.getView(payload.viewKey);
       context.commit('moveSelectedOffset', payload);
     },
-    addNodes(context, payload) {
+    addNodes(context: any, payload: any) {
       let listNodes = [];
 
       for (let [index, element] of payload.entries.entries()) {
@@ -285,10 +285,10 @@ export default createStore({
       payload.view = context.getters.getView(payload.viewKey);
       context.commit('addNodes', payload);
     },
-    createTab(context, payload) {
+    createTab(context: any, payload: any) {
       context.commit('createTab', payload);
     },
-    undoView(context, payload) {
+    undoView(context: any, payload: any) {
       payload.view = context.getters.getView(payload.viewKey);
       context.commit('undoView', payload);
     }

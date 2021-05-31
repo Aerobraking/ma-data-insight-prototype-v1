@@ -17,11 +17,10 @@
       @click="selectTab(index)"
       :key="view.key"
       v-show="view.isActive"
-      
     >
       <workspace :workspace="view" v-if="view.type === 'workspace'">
       </workspace>
-      <globalview :global="view" v-else> </globalview>
+      <forceview :global="view" v-else> </forceview> 
     </div>
   </keep-alive>
 </template>
@@ -31,6 +30,7 @@
 import { defineComponent } from "vue";
 import workspace from "./workspace.vue";
 import globalview from "./globalview.vue";
+import forceview from "./forceview.vue";
 
 export default defineComponent({
   el: "#wrapper",
@@ -38,6 +38,7 @@ export default defineComponent({
   components: {
     workspace,
     globalview,
+    forceview,
   },
   data(): {} {
     return {
@@ -45,7 +46,7 @@ export default defineComponent({
     };
   },
   computed: {
-    getViewList() { 
+    getViewList() {
       return this.$store.getters.getViewList;
     },
     getSelectedViewIndex() {
@@ -54,9 +55,9 @@ export default defineComponent({
   },
   methods: {
     createTab() {
-      this.$store.dispatch('createTab');
+      this.$store.dispatch("createTab");
     },
-    selectTab(i: Number) { 
+    selectTab(i: Number) {
       this.$store.state.selectedViewIndex = i;
       this.$store.getters.getViewList.forEach((entry: any, index: Number) => {
         entry.isActive = index === i;

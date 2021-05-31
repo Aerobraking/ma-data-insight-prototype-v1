@@ -84,7 +84,7 @@ export default createStore({
           }]
       }
     ],
-    selectedViewIndex: 0
+    selectedViewIndex: 3
 
   },
   getters: {

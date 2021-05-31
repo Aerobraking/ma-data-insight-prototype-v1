@@ -6,7 +6,7 @@
     @mousedown.capture.ctrl="dragMouseDown"
     @mousemove.capture.ctrl.exact="dragMouseMove"
     @click.exact="canvasMouseClick"
-    class="wrapper-globalview"
+    class="wrapper-forceview"
   ></div>
 </template>
 
@@ -122,11 +122,11 @@ const data1: any = {
 import { defineComponent } from "vue";
 import Nodes from "./nodes.vue";
 import * as d3 from "d3";
-import { ZoomView } from "d3";
+import { D3DragEvent, ZoomView } from "d3";
 
 export default defineComponent({
   el: "#app",
-  name: "GlobalView",
+  name: "ForceView",
   components: {
     Nodes,
   },
@@ -184,7 +184,7 @@ export default defineComponent({
         .scaleOrdinal<number, string>()
         .domain([0, 1, 2, 3])
         .range(["#bfbfbf", "#838383", "#4c4c4c", "#1c1c1c"]),
-      nodes: null,
+      nodes: [],
       diameter: null,
       radius: null,
       hiddenContext: [],
@@ -201,17 +201,10 @@ export default defineComponent({
   computed: {},
   methods: {
     drawAll: function () {
-      //////////////////////////////////////////////////////////////
-      ////////////////// Create Set-up variables  //////////////////
-      //////////////////////////////////////////////////////////////
-
-      //////////////////////////////////////////////////////////////
-      /////////////////////// Create SVG  ///////////////////////
-      //////////////////////////////////////////////////////////////
-
+ 
       //Create the visible canvas and context
       this.canvas = d3
-        .select(".wrapper-globalview")
+        .select(".wrapper-forceview")
         .append("canvas")
         .attr("width", this.$el.clientWidth)
         .attr("height", this.$el.clientHeight)
@@ -224,7 +217,7 @@ export default defineComponent({
       //Create a hidden canvas in which each circle will have a different color
       //We can use this to capture the clicked on circle
       this.hiddenCanvas = d3
-        .select(".wrapper-globalview")
+        .select(".wrapper-forceview")
         .append("canvas")
         .attr("width", this.$el.clientWidth)
         .attr("height", this.$el.clientHeight)
@@ -244,19 +237,13 @@ export default defineComponent({
       var detachedContainer = document.createElement("custom");
       let dataContainer = d3.select(detachedContainer);
 
-      //////////////////////////////////////////////////////////////
-      /////////////////////// Create Scales  ///////////////////////
-      //////////////////////////////////////////////////////////////
-
+ 
       (this.diameter = Math.min(this.$el.clientWidth, this.$el.clientHeight)),
         (this.radius = this.diameter / 2);
 
       //Dataset to swtich between color of a circle (in the hidden canvas) and the node data
-
-      //////////////////////////////////////////////////////////////
-      ////////////////// Create Circle Packing /////////////////////
-      //////////////////////////////////////////////////////////////
-      this.root = d3.hierarchy(data1);
+ 
+      this.root = d3.hierarchy<any>(data1);
       this.root
         .sum(function (d: any) {
           return d.size ? d.size : 0;
@@ -265,18 +252,37 @@ export default defineComponent({
           return a.ID;
         });
 
-      var force = d3
-        .forceSimulation(this.root)
-        .force("charge", d3.forceManyBody())
-        .force("center", d3.forceCenter());
-
-     
-
       let pack = d3.pack().padding(1).size([this.diameter, this.diameter]);
       pack(this.root);
 
       this.nodes = this.root.descendants();
       this.focus = this.root;
+      this.nodes.forEach((node: any) => {
+        node.r = Math.random() * 300.1;
+      });
+
+      var simulation = d3
+        .forceSimulation(this.nodes)
+        .force("charge", d3.forceManyBody().strength(2430))
+        .force("center", d3.forceCenter(0, 0))
+        .force(
+          "collision",
+          d3.forceCollide().radius(function (d: any) {
+            return d.r;
+          })
+        )
+        .on("tick", this.ticked)
+        .alphaTarget(0.1)
+        .alphaDecay(0.05);
+
+      d3.selectAll("#canvas").call(
+        d3
+          .drag<any, any>()
+          .subject(this.dragsubject)
+          .on("start", this.dragstarted)
+          .on("drag", this.dragged)
+          .on("end", this.dragended)
+      );
 
       this.nodeCount = this.nodes.length;
 
@@ -290,14 +296,50 @@ export default defineComponent({
 
       var thisInstance = this;
 
-      d3.timer(function (elapsed: number) {
-        thisInstance.interpolateZoom(elapsed - thisInstance.dt);
-        thisInstance.dt = elapsed;
-        thisInstance.drawCanvas(false);
-      });
+      thisInstance.interpolateZoom(0 - thisInstance.dt);
+      thisInstance.dt = 0;
+      thisInstance.drawCanvas(false);
+
+      // d3.timer(function (elapsed: number) {
+      //   thisInstance.interpolateZoom(elapsed - thisInstance.dt);
+      //   thisInstance.dt = elapsed;
+      //   thisInstance.drawCanvas(false);
+      // });
     },
+    dragsubject(event: D3DragEvent<any, any, any>) {
+      this.drawCanvas(true);
+
+      //Figure out where the mouse click occurred.
+      var mouseX = event.x;
+      var mouseY = event.y;
+
+      // Get the corresponding pixel color on the hidden canvas and look up the node in our map.
+      // This will return that pixel's color
+      var col = this.hiddenContext.getImageData(mouseX, mouseY, 1, 1).data;
+      //Our map uses these rgb strings as keys to nodes.
+      var colString = "rgb(" + col[0] + "," + col[1] + "," + col[2] + ")";
+      var node = this.colToCircle[colString];
+
+      if (node) {
+        return node;
+      }
+ 
+    },
+    dragstarted(event: D3DragEvent<any, any, any>) {},
+    dragged(event: D3DragEvent<any, any, any>, d: any) {
+      // debugger;
+      event.subject.x += event.dx / this.zoomInfo.scale;
+      event.subject.y += event.dy / this.zoomInfo.scale;
+    },
+    dragended() {},
     getNodes() {
       return this.$props.global.nodes;
+    },
+    ticked() {
+      this.interpolateZoom(0 - this.dt);
+      this.dt = 0;
+      this.drawCanvas(false);
+  
     },
 
     keyDownCtrl: function (e: KeyboardEvent) {
@@ -420,12 +462,11 @@ export default defineComponent({
 
       if (node) {
         if (focus !== node) this.zoomToCanvas(node);
-        else this.zoomToCanvas(this.root);
-      } //if
+      } else this.zoomToCanvas(this.root);
     },
     zoomToCanvas: function (focusNode: any) {
       this.focus = focusNode;
-      let v: ZoomView = [this.focus.x, this.focus.y, this.focus.r * 2.05]; //The center and width of the new "viewport"
+      let v: ZoomView = [this.focus.x, this.focus.y, this.focus.r * 0.05]; //The center and width of the new "viewport"
 
       this.interpolator = d3.interpolateZoom(this.vOld, v); //Create interpolation between current and new "viewport"
 
@@ -443,7 +484,7 @@ export default defineComponent({
         if (this.duration == 0) {
           this.zoomInfo.centerX = this.focus.x;
           this.zoomInfo.centerY = this.focus.y;
-          this.zoomInfo.scale = this.diameter / (this.focus.r * 2);
+          this.zoomInfo.scale = 1;
           this.interpolator = null;
           return;
         }
@@ -455,6 +496,7 @@ export default defineComponent({
         this.zoomInfo.centerX = this.interpolator(t)[0];
         this.zoomInfo.centerY = this.interpolator(t)[1];
         this.zoomInfo.scale = this.diameter / this.interpolator(t)[2];
+        this.zoomInfo.scale = 0.21;
 
         if (this.timeElapsed >= this.duration) this.interpolator = null;
       } //if
@@ -465,7 +507,7 @@ export default defineComponent({
 
  
 <style scoped lang="scss">
-.wrapper-globalview {
+.wrapper-forceview {
   width: 100%;
   height: 100%;
   position: absolute;
